@@ -1,6 +1,7 @@
 {
   "values": [
     "ts_pack:load",
+    "compass_player_locator:load",
     "ayers_craft:load"
   ]
 }

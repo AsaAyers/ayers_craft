@@ -1,6 +1,7 @@
 {
   "values": [
     "ayers_sort:tick",
-    "ayers_craft:tick"
+    "compass_player_locator:tick",
+    "compass_player_locator:tick_track"
   ]
 }
