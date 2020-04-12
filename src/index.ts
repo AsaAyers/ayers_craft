@@ -8,15 +8,13 @@ import DataPack, {
   schedule,
   effect,
   team,
+  gamerule,
 } from "@asaayers/ts-datapack";
 import "./sorter";
 import "./compass";
 import { CodeGenReturn } from "@asaayers/ts-datapack/dist/types";
 
 const ac = new DataPack("ayers_craft");
-const scoreboard = ac.makeScoreboard("AC", {
-  invincible: "dummy",
-});
 
 type GroupConfig = {
   group_name: string;
@@ -34,8 +32,8 @@ const creepers = ac.mcFunction(function* creepers() {
   const ifCreeper = execute().at("@a").if(`entity ${creeper}`);
   const unlessCreeper = execute().at("@a").unless(`entity ${creeper}`);
 
-  yield ifCreeper.run("gamerule mobGriefing false");
-  yield unlessCreeper.run("gamerule mobGriefing true");
+  yield ifCreeper.run(gamerule("mobGriefing", false));
+  yield unlessCreeper.run(gamerule("mobGriefing", true));
 
   yield schedule(creepers, `10t`);
 });

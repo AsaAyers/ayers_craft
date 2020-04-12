@@ -7,6 +7,8 @@ import DataPack, {
   say,
   tellraw,
   effect,
+  title,
+  command,
 } from "@asaayers/ts-datapack";
 
 const compass = new DataPack("compass_player_locator");
@@ -60,13 +62,13 @@ const show_following = compass.mcFunction(function* show_following() {
   yield execute()
     .at(entity)
     .if(`score ${self} ${sb.id} = @s ${sb.follow}`)
-    .run(`title @a title ["",{"text":"Following"}]`);
+    .run(title("@a", "title", ["", { text: "Following" }]));
 
   yield execute()
     .at(entity)
     // If its score mathes the subject's follow ID
     .if(`score ${self} ${sb.id} = @s ${sb.follow}`)
-    .run(`title @a subtitle ["",{"selector":"${self}"}]`);
+    .run(title("@a", "subtitle", ["", { selector: self }]));
 });
 
 const change = compass.mcFunction(function* change() {
@@ -119,7 +121,9 @@ const show_status = compass.mcFunction(function* show_status() {
     },
   ]);
 
-  yield execute().if(`entity ${nearby}`).run(`say ${nearby}`);
+  yield execute()
+    .if(`entity ${nearby}`)
+    .run(say(`${nearby}`));
   yield execute()
     .if(`entity ${nearby}`)
     .run(
@@ -169,7 +173,7 @@ const tick = compass.mcFunction(function* tick() {
   yield execute()
     .as(a({ scores: `{${sb.holding}=1}` }))
     .unless(`entity @s[nbt={SelectedItem:{id:"minecraft:compass"}}]`)
-    .run(`scoreboard players set @s ${sb.holding} 0`);
+    .run(scoreboard("players", "set", "@s", sb.holding, 0));
 
   yield scoreboard("players", "enable", "@a", sb.follow_new);
   yield execute()
@@ -181,7 +185,17 @@ const tick = compass.mcFunction(function* tick() {
 
   yield execute()
     .as(`@a[scores={${sb.follow_next}=1..}]`)
-    .run(`scoreboard players operation @s ${sb.searching} = @s ${sb.follow}`);
+    .run(
+      scoreboard(
+        "players",
+        "operation",
+        "@s",
+        sb.searching,
+        "=",
+        "@s",
+        sb.follow
+      )
+    );
 
   yield execute().as(`@a[scores={${sb.follow_next}=1..}]`).at("@s").run(change);
   yield scoreboard("players", "add", "@a", sb.id, 0);
@@ -202,7 +216,10 @@ const find_target = compass.mcFunction(function* track_entity() {
   });
 
   const show_target = compass.mcFunction(function* show_target() {
-    const particle = "minecraft:dust 1.0 1.0 1.0 1.0 ~ ~ ~ 0 0 0 0 1";
+    // TODO: Figure out the particle function
+    const particle = command(
+      "particle minecraft:dust 1.0 1.0 1.0 1.0 ~ ~ ~ 0 0 0 0 1"
+    );
     const playerFollowing = compass.createSelector("@a", {
       scores: `{${sb.follow}=1..}`,
       nbt: nbt({ SelectedItem: { id: "minecraft:compass" } }),
@@ -221,7 +238,7 @@ const find_target = compass.mcFunction(function* track_entity() {
         .facing(`entity @s eyes`)
         .positioned(`~ ~1 ~`)
         .positioned(`^ ^ ^${distance}`)
-        .run(`particle ${particle}`);
+        .run(particle);
     }
   });
 
