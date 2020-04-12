@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import config from "../mss_config.json";
-import DataPack, { TextNode, mcTick, McFunction } from "@asaayers/ts-datapack";
+import DataPack, {
+  TextNode,
+  mcTick,
+  McFunction,
+  nbt,
+  command,
+} from "@asaayers/ts-datapack";
 
 const cooldownPlayer = "#ac_cooldown";
 const tickPlayer = "#ac_tick";
@@ -42,7 +48,7 @@ frame: ${stripPrefix(group.item_frame)}${
 
   const tellraw = ac.mcFunction(function* () {
     yield `
-      tellraw @p ${ac.nbt([
+      tellraw @p ${nbt([
         "Group ",
         textNode,
         ":\n",
@@ -52,7 +58,7 @@ frame: ${stripPrefix(group.item_frame)}${
             text: `${stripPrefix(item)}`,
             hoverEvent: {
               action: "show_item",
-              value: ac.nbt({
+              value: nbt({
                 id: stripPrefix(item),
                 Count: 1,
                 display: {
@@ -131,11 +137,11 @@ const book = ac.makeLootTable("book", () => {
             functions: [
               {
                 function: "minecraft:set_nbt",
-                tag: ac.nbt({
+                tag: nbt({
                   title: "AyersCraft",
                   author: "Urgaak",
-                  pages: pages.map((page) => ac.nbt(page.flat())),
-                  // pages: [ac.nbt([...groupLines[0], ...groupLines[1]])],
+                  pages: pages.map((page) => nbt(page.flat())),
+                  // pages: [nbt([...groupLines[0], ...groupLines[1]])],
                 }),
               },
             ],
@@ -181,11 +187,11 @@ scoreboard players set ${cooldownPlayer} ${scoreboard.cooldown} 1
       groups[group.group_name] = ac.mcFunction(function* () {
         const targetFrame = ac.createSelector("@e", {
           type: "minecraft:item_frame",
-          nbt: ac.nbt({ Item: { id: group.item_frame } }),
+          nbt: nbt({ Item: { id: group.item_frame } }),
           distance: "0..128",
         });
 
-        yield ac.command(
+        yield command(
           "execute as @s",
           `if entity ${targetFrame}`,
           `at ${targetFrame({

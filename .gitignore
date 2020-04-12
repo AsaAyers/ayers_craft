@@ -1,3 +1,4 @@
 .datapackdist/
 node_modules/
 .datapack/
+workspace.code-workspace

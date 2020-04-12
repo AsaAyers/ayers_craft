@@ -22,5 +22,9 @@
   "scripts": {
     "build": "ts-node src",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "nodemonConfig": {
+    "ignore": ["data*/", "pack.mcmeta"],
+    "delay": "2500"
   }
 }

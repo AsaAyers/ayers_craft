@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import * as path from "path";
-import DataPack, { build, mcLoad } from "@asaayers/ts-datapack";
+import DataPack, { build, mcLoad, command } from "@asaayers/ts-datapack";
 import "./sorter";
 import "./compass";
 
@@ -25,8 +25,8 @@ const creepers = ac.mcFunction(function* creepers() {
   const ifCreeper = `execute at @a if entity ${creeper}`;
   const unlessCreeper = `execute at @a unless entity ${creeper}`;
 
-  yield ac.command(ifCreeper, "run gamerule mobGriefing false");
-  yield ac.command(unlessCreeper, "run gamerule mobGriefing true");
+  yield command(ifCreeper, "run gamerule mobGriefing false");
+  yield command(unlessCreeper, "run gamerule mobGriefing true");
 
   yield `schedule function ${creepers} 10t`;
 });

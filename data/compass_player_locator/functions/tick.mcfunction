@@ -7,10 +7,13 @@ execute as @a[nbt={"SelectedItem":{"id":"minecraft:compass"}},scores={cpl.holdin
 execute as @a[scores={cpl.holding=1}] unless entity @s[nbt={SelectedItem:{id:"minecraft:compass"}}] run scoreboard players set @s cpl.holding 0
 
 scoreboard players enable @a cpl.follow_new
+
 execute as @a[scores={cpl.follow_new=1..}] at @s run function compass_player_locator:follow_new_entity
 
 scoreboard players enable @a cpl.follow_next
+
 execute as @a[scores={cpl.follow_next=1..}] run scoreboard players operation @s cpl.searching = @s cpl.follow
+
 execute as @a[scores={cpl.follow_next=1..}] at @s run function compass_player_locator:change
 
 scoreboard players add @a cpl.id 0
