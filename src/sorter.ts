@@ -9,6 +9,7 @@ import DataPack, {
   tellraw,
   scoreboard,
   execute,
+  teleport,
 } from "@asaayers/ts-datapack";
 import { Command } from "@asaayers/ts-datapack/dist/types";
 
@@ -180,7 +181,7 @@ const sort = ac.mcFunction(function* sort() {
   function processGroup(group: GroupConfig): McFunction {
     if (groups[group.group_name] == null) {
       // Fallback to the player if no fallback was configured
-      let fallback: Command | McFunction = command(`teleport @s @p`);
+      let fallback: Command | McFunction = teleport("@s", "@p");
 
       if (group.fallback != null) {
         const fallbackGroup = config.groups.find(
@@ -209,7 +210,7 @@ const sort = ac.mcFunction(function* sort() {
               sort: "random",
             })
           )
-          .run(command(`teleport @s ^ ^0.5 ^-0.5`));
+          .run(teleport("@s", "^ ^0.5 ^-0.5"));
 
         yield execute().as("@s").unless(`entity ${targetFrame}`).run(fallback);
         yield command(`data merge entity @s {Motion:[0.0,0.0,0.0]}`);
