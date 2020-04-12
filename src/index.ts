@@ -15,6 +15,9 @@ import "./compass";
 import { CodeGenReturn } from "@asaayers/ts-datapack/dist/types";
 
 const ac = new DataPack("ayers_craft");
+const sb = ac.makeScoreboard("AC", {
+  invincible: "dummy",
+});
 
 type GroupConfig = {
   group_name: string;
@@ -41,7 +44,7 @@ const creepers = ac.mcFunction(function* creepers() {
 const invincibility = ac.mcFunction(function* invincibility(): CodeGenReturn {
   yield effect(
     "give",
-    "@a[scores={${scoreboard.invincible}=1}]",
+    `@a[scores={${sb.invincible}=1}]`,
     "minecraft:regeneration",
     60,
     255,
@@ -50,7 +53,7 @@ const invincibility = ac.mcFunction(function* invincibility(): CodeGenReturn {
 
   yield effect(
     "give",
-    "@a[scores={${scoreboard.invincible}=1}]",
+    `@a[scores={${sb.invincible}=1}]`,
     "minecraft:resistance",
     60,
     255,

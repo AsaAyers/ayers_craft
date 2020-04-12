@@ -2,21 +2,26 @@
 
 scoreboard players add #ac_tick sort.tick 1
 
-# Every 1 second
 execute if score #ac_tick sort.tick matches 1 run function ayers_sort:second
+
 execute if score #ac_tick sort.tick matches 21 run function ayers_sort:second
+
 execute if score #ac_tick sort.tick matches 41 run function ayers_sort:second
+
 execute if score #ac_tick sort.tick matches 61 run function ayers_sort:second
+
 execute if score #ac_tick sort.tick matches 81 run function ayers_sort:second
 
-# Every 1 second just after previous tick (cooldown)
 execute if score #ac_tick sort.tick matches 2 if score #ac_cooldown sort.cooldown matches 1 run function ayers_sort:sort/cleanup
+
 execute if score #ac_tick sort.tick matches 22 if score #ac_cooldown sort.cooldown matches 1 run function ayers_sort:sort/cleanup
+
 execute if score #ac_tick sort.tick matches 42 if score #ac_cooldown sort.cooldown matches 1 run function ayers_sort:sort/cleanup
+
 execute if score #ac_tick sort.tick matches 62 if score #ac_cooldown sort.cooldown matches 1 run function ayers_sort:sort/cleanup
+
 execute if score #ac_tick sort.tick matches 82 if score #ac_cooldown sort.cooldown matches 1 run function ayers_sort:sort/cleanup
 
-# Reset at 100
 execute if score #ac_tick sort.tick matches 100.. run scoreboard players set #ac_tick sort.tick 0
 
 scoreboard players enable @a sort.new_book

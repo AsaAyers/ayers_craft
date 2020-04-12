@@ -3,10 +3,12 @@
 say "Hello AyersCraft.ts"
 
 team add AyersCraft
+
 team modify AyersCraft friendlyFire false
+
 team join AyersCraft @a
 
-schedule function ayers_craft:invincibility 1t
+schedule function ayers_craft:invincibility 1t replace
 
-schedule function ayers_craft:creepers 10t
+schedule function ayers_craft:creepers 10t replace
 

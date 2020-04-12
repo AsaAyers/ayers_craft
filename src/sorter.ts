@@ -6,12 +6,16 @@ import DataPack, {
   McFunction,
   nbt,
   command,
+  tellraw,
+  scoreboard,
+  execute,
 } from "@asaayers/ts-datapack";
+import { Command } from "@asaayers/ts-datapack/dist/types";
 
 const cooldownPlayer = "#ac_cooldown";
 const tickPlayer = "#ac_tick";
 const ac = new DataPack("ayers_sort");
-const scoreboard = ac.makeScoreboard("sort", {
+const sb = ac.makeScoreboard("sort", {
   new_book: `trigger`,
   tick: "dummy",
   cooldown: "dummy",
@@ -46,38 +50,37 @@ frame: ${stripPrefix(group.item_frame)}${
     },
   };
 
-  const tellraw = ac.mcFunction(function* () {
-    yield `
-      tellraw @p ${nbt([
-        "Group ",
-        textNode,
-        ":\n",
-        ...group.items.map((item) => [
-          "* ",
-          {
-            text: `${stripPrefix(item)}`,
-            hoverEvent: {
-              action: "show_item",
-              value: nbt({
-                id: stripPrefix(item),
-                Count: 1,
-                display: {
-                  Name: "A Cake",
-                  Lore: ["Made by", "Steve & Alex", "With Love <3"],
-                },
-              }),
-            },
+  const tRaw = ac.mcFunction(function* () {
+    yield tellraw("@p", [
+      "Group ",
+      textNode,
+      ":\n",
+      ...group.items.map((item) => [
+        "* ",
+        {
+          text: `${stripPrefix(item)}`,
+          hoverEvent: {
+            action: "show_item",
+            value: nbt({
+              id: stripPrefix(item),
+              Count: 1,
+              display: {
+                Name: "A Cake",
+                Lore: ["Made by", "Steve & Alex", "With Love <3"],
+              },
+            }),
           },
-          "\n",
-        ]),
-      ])}`.trim();
+        },
+        "\n",
+      ]),
+    ]);
   }, `sort/help/${group.group_name}`);
 
   return {
     ...textNode,
     clickEvent: {
       action: "run_command",
-      value: `/function ${tellraw}`,
+      value: `/function ${tRaw}`,
     },
   };
 }
@@ -91,7 +94,7 @@ const book = ac.makeLootTable("book", () => {
       text: "Item Sorter Groups",
       clickEvent: {
         action: "run_command",
-        value: `/trigger ${scoreboard.new_book}`, // eslint-disable-line @typescript-eslint/no-use-before-define
+        value: `/trigger ${sb.new_book}`, // eslint-disable-line @typescript-eslint/no-use-before-define
       },
     },
     "\n",
@@ -153,25 +156,31 @@ const book = ac.makeLootTable("book", () => {
 });
 
 const new_book = ac.mcFunction(function* new_book() {
-  yield `
-loot give @s loot ${book}
-scoreboard players set @s ${scoreboard.new_book} 0
-    `;
+  yield command(`loot give @s loot ${book}`);
+  yield scoreboard("players", "set", "@s", sb.new_book, 0);
 });
 
 const sort = ac.mcFunction(function* sort() {
-  yield `
-execute at @s unless score ${cooldownPlayer} ${scoreboard.cooldown} matches 1 run playsound minecraft:entity.illusioner.mirror_move block @a[distance=..5] ~ ~ ~ 1.0 1.0
-execute at @s unless score ${cooldownPlayer} ${scoreboard.cooldown} matches 1 run particle minecraft:entity_effect ~ ~ ~ 1 1 1 1 100
-scoreboard players set ${cooldownPlayer} ${scoreboard.cooldown} 1
-`;
+  yield execute()
+    .at("@s")
+    .unless(`score ${cooldownPlayer} ${sb.cooldown} matches 1`)
+    .run(
+      command(
+        `playsound minecraft:entity.illusioner.mirror_move block @a[distance=..5] ~ ~ ~ 1.0 1.0`
+      )
+    );
+  yield execute()
+    .at("@s")
+    .unless(`score ${cooldownPlayer} ${sb.cooldown} matches 1`)
+    .run(command(`particle minecraft:entity_effect ~ ~ ~ 1 1 1 1 100`));
+  yield scoreboard("players", "set", cooldownPlayer, sb.cooldown, 1);
 
   const groups: Record<string, McFunction> = {};
 
   function processGroup(group: GroupConfig): McFunction {
     if (groups[group.group_name] == null) {
       // Fallback to the player if no fallback was configured
-      let fallback = `teleport @s @p`;
+      let fallback: Command | McFunction = command(`teleport @s @p`);
 
       if (group.fallback != null) {
         const fallbackGroup = config.groups.find(
@@ -181,7 +190,7 @@ scoreboard players set ${cooldownPlayer} ${scoreboard.cooldown} 1
           throw new Error(`Failed to find fallback: ${group.fallback}`);
         }
         const fn = processGroup(fallbackGroup);
-        fallback = `function ${fn}`;
+        fallback = fn;
       }
 
       groups[group.group_name] = ac.mcFunction(function* () {
@@ -191,18 +200,19 @@ scoreboard players set ${cooldownPlayer} ${scoreboard.cooldown} 1
           distance: "0..128",
         });
 
-        yield command(
-          "execute as @s",
-          `if entity ${targetFrame}`,
-          `at ${targetFrame({
-            limit: 1,
-            sort: "random",
-          })}`,
-          `run teleport @s ^ ^0.5 ^-0.5`
-        );
+        yield execute()
+          .as("@s")
+          .if(`entity ${targetFrame}`)
+          .at(
+            targetFrame({
+              limit: 1,
+              sort: "random",
+            })
+          )
+          .run(command(`teleport @s ^ ^0.5 ^-0.5`));
 
-        yield `execute as @s unless entity ${targetFrame} run ${fallback}`;
-        yield `data merge entity @s {Motion:[0.0,0.0,0.0]}`;
+        yield execute().as("@s").unless(`entity ${targetFrame}`).run(fallback);
+        yield command(`data merge entity @s {Motion:[0.0,0.0,0.0]}`);
       }, `sort/${group.group_name}`);
     }
     return groups[group.group_name];
@@ -212,43 +222,63 @@ scoreboard players set ${cooldownPlayer} ${scoreboard.cooldown} 1
     const group = config.groups[i];
     const fn = processGroup(group);
     for (const item of group.items) {
-      yield `execute as @s if entity @s[type=item,nbt={Item:{id:"${item}"}}] run function ${fn}`;
+      yield execute()
+        .as("@s")
+        .if(`entity @s[type=item,nbt={Item:{id:"${item}"}}]`)
+        .run(fn);
     }
   }
 }, "sort");
 
 const second = ac.mcFunction(function* second() {
-  yield `execute as @e[type=item] at @s if block ~ ~-1 ~ minecraft:lapis_block if block ~ ~-2 ~ minecraft:gold_block run function ${sort}`;
+  yield execute()
+    .as("@e[type=item]")
+    .at("@s")
+    .if(`block ~ ~-1 ~ minecraft:lapis_block`)
+    .if(`block ~ ~-2 ~ minecraft:gold_block`)
+    .run(sort);
 });
 
 const tick = ac.mcFunction(function* tick() {
   const cleanup = ac.mcFunction(function* cleanup() {
-    yield `scoreboard players set ${cooldownPlayer} ${scoreboard.cooldown} 0`;
+    yield scoreboard("players", "set", cooldownPlayer, sb.cooldown, 0);
   }, "sort/cleanup");
 
-  yield `
-scoreboard players add ${tickPlayer} ${scoreboard.tick} 1
+  yield scoreboard("players", "add", tickPlayer, sb.tick, 1);
 
-# Every 1 second
-execute if score ${tickPlayer} ${scoreboard.tick} matches 1 run function ${second}
-execute if score ${tickPlayer} ${scoreboard.tick} matches 21 run function ${second}
-execute if score ${tickPlayer} ${scoreboard.tick} matches 41 run function ${second}
-execute if score ${tickPlayer} ${scoreboard.tick} matches 61 run function ${second}
-execute if score ${tickPlayer} ${scoreboard.tick} matches 81 run function ${second}
+  yield execute().if(`score ${tickPlayer} ${sb.tick} matches 1`).run(second);
+  yield execute().if(`score ${tickPlayer} ${sb.tick} matches 21`).run(second);
+  yield execute().if(`score ${tickPlayer} ${sb.tick} matches 41`).run(second);
+  yield execute().if(`score ${tickPlayer} ${sb.tick} matches 61`).run(second);
+  yield execute().if(`score ${tickPlayer} ${sb.tick} matches 81`).run(second);
 
-# Every 1 second just after previous tick (cooldown)
-execute if score ${tickPlayer} ${scoreboard.tick} matches 2 if score ${cooldownPlayer} ${scoreboard.cooldown} matches 1 run function ${cleanup}
-execute if score ${tickPlayer} ${scoreboard.tick} matches 22 if score ${cooldownPlayer} ${scoreboard.cooldown} matches 1 run function ${cleanup}
-execute if score ${tickPlayer} ${scoreboard.tick} matches 42 if score ${cooldownPlayer} ${scoreboard.cooldown} matches 1 run function ${cleanup}
-execute if score ${tickPlayer} ${scoreboard.tick} matches 62 if score ${cooldownPlayer} ${scoreboard.cooldown} matches 1 run function ${cleanup}
-execute if score ${tickPlayer} ${scoreboard.tick} matches 82 if score ${cooldownPlayer} ${scoreboard.cooldown} matches 1 run function ${cleanup}
+  yield execute()
+    .if(`score ${tickPlayer} ${sb.tick} matches 2`)
+    .if(`score ${cooldownPlayer} ${sb.cooldown} matches 1`)
+    .run(cleanup);
+  yield execute()
+    .if(`score ${tickPlayer} ${sb.tick} matches 22`)
+    .if(`score ${cooldownPlayer} ${sb.cooldown} matches 1`)
+    .run(cleanup);
+  yield execute()
+    .if(`score ${tickPlayer} ${sb.tick} matches 42`)
+    .if(`score ${cooldownPlayer} ${sb.cooldown} matches 1`)
+    .run(cleanup);
+  yield execute()
+    .if(`score ${tickPlayer} ${sb.tick} matches 62`)
+    .if(`score ${cooldownPlayer} ${sb.cooldown} matches 1`)
+    .run(cleanup);
+  yield execute()
+    .if(`score ${tickPlayer} ${sb.tick} matches 82`)
+    .if(`score ${cooldownPlayer} ${sb.cooldown} matches 1`)
+    .run(cleanup);
 
-# Reset at 100
-execute if score ${tickPlayer} ${scoreboard.tick} matches 100.. run scoreboard players set ${tickPlayer} ${scoreboard.tick} 0
-`;
+  yield execute()
+    .if(`score ${tickPlayer} ${sb.tick} matches 100..`)
+    .run(scoreboard("players", "set", tickPlayer, sb.tick, 0));
 
-  yield ` scoreboard players enable @a ${scoreboard.new_book} `;
-  yield `execute as @p[scores={${scoreboard.new_book}=1}] at @s run function ${new_book}`;
+  yield scoreboard("players", "enable", "@a", sb.new_book);
+  yield execute().as(`@p[scores={${sb.new_book}=1}]`).at("@s").run(new_book);
 });
 
 mcTick(tick);

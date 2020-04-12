@@ -4,5 +4,5 @@ execute at @a if entity @e[type=minecraft:creeper,distance=0..10] run gamerule m
 
 execute at @a unless entity @e[type=minecraft:creeper,distance=0..10] run gamerule mobGriefing true
 
-schedule function ayers_craft:creepers 10t
+schedule function ayers_craft:creepers 10t replace
 
