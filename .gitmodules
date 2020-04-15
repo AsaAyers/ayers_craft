@@ -1,0 +1,3 @@
+[submodule "ts-datapack"]
+	path = ts-datapack
+	url = git@github.com:AsaAyers/ts-datapack.git
