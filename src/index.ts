@@ -9,10 +9,9 @@ import DataPack, {
   effect,
   team,
   gamerule,
-} from "@asaayers/ts-datapack";
+} from "../ts-datapack/src";
 import "./sorter";
 import "./compass";
-import { CodeGenReturn } from "@asaayers/ts-datapack/dist/types";
 
 const ac = new DataPack("ayers_craft");
 const sb = ac.makeScoreboard("AC", {
@@ -41,7 +40,7 @@ const creepers = ac.mcFunction(function* creepers() {
   yield schedule(creepers, `10t`);
 });
 
-const invincibility = ac.mcFunction(function* invincibility(): CodeGenReturn {
+const invincibility = ac.mcFunction(function* invincibility() {
   yield effect(
     "give",
     `@a[scores={${sb.invincible}=1}]`,

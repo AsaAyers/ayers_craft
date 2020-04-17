@@ -10,8 +10,11 @@ import DataPack, {
   scoreboard,
   execute,
   teleport,
-} from "@asaayers/ts-datapack";
-import { Command } from "@asaayers/ts-datapack/dist/types";
+  loot,
+  Particle,
+  particle,
+} from "../ts-datapack/src";
+import { Command } from "../ts-datapack/src/types";
 
 const cooldownPlayer = "#ac_cooldown";
 const tickPlayer = "#ac_tick";
@@ -157,7 +160,7 @@ const book = ac.makeLootTable("book", () => {
 });
 
 const new_book = ac.mcFunction(function* new_book() {
-  yield command(`loot give @s loot ${book}`);
+  yield loot("give", "@s").source("loot", book);
   yield scoreboard("players", "set", "@s", sb.new_book, 0);
 });
 
@@ -173,7 +176,7 @@ const sort = ac.mcFunction(function* sort() {
   yield execute()
     .at("@s")
     .unless(`score ${cooldownPlayer} ${sb.cooldown} matches 1`)
-    .run(command(`particle minecraft:entity_effect ~ ~ ~ 1 1 1 1 100`));
+    .run(particle(Particle.entity_effect, `~ ~ ~`, `1 1 1`, 1, 100));
   yield scoreboard("players", "set", cooldownPlayer, sb.cooldown, 1);
 
   const groups: Record<string, McFunction> = {};

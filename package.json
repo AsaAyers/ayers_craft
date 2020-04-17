@@ -8,6 +8,7 @@
   "main": "src/index.ts",
   "dependencies": {
     "@types/node": "^13.11.0",
+    "nodemon": "^2.0.3",
     "typescript": "^3.8.3"
   },
   "devDependencies": {
@@ -20,11 +21,15 @@
     "ts-node": "^8.8.2"
   },
   "scripts": {
+    "start": "nodemon",
     "build": "ts-node src",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "nodemonConfig": {
-    "ignore": ["data*/", "pack.mcmeta"],
+    "ignore": [
+      "data*/",
+      "pack.mcmeta"
+    ],
     "delay": "2500"
   }
 }

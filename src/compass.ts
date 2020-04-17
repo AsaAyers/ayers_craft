@@ -8,8 +8,9 @@ import DataPack, {
   tellraw,
   effect,
   title,
-  command,
-} from "@asaayers/ts-datapack";
+  particle,
+  Particle,
+} from "../ts-datapack/src";
 
 const compass = new DataPack("compass_player_locator");
 
@@ -217,9 +218,7 @@ const find_target = compass.mcFunction(function* track_entity() {
 
   const show_target = compass.mcFunction(function* show_target() {
     // TODO: Figure out the particle function
-    const particle = command(
-      "particle minecraft:dust 1.0 1.0 1.0 1.0 ~ ~ ~ 0 0 0 0 1"
-    );
+
     const playerFollowing = compass.createSelector("@a", {
       scores: `{${sb.follow}=1..}`,
       nbt: nbt({ SelectedItem: { id: "minecraft:compass" } }),
@@ -238,7 +237,9 @@ const find_target = compass.mcFunction(function* track_entity() {
         .facing(`entity @s eyes`)
         .positioned(`~ ~1 ~`)
         .positioned(`^ ^ ^${distance}`)
-        .run(particle);
+        .run(
+          particle(Particle.dust, "1.0 1.0 1.0 1.0", `~ ~ ~`, `0 0 0`, 0, 1)
+        );
     }
   });
 
