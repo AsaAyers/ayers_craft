@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/camelcase */
-import * as path from "path";
 import DataPack, {
-  build,
   mcLoad,
   say,
   execute,
@@ -9,9 +7,11 @@ import DataPack, {
   effect,
   team,
   gamerule,
+  build,
 } from "../ts-datapack/src";
 import "./sorter";
 import "./compass";
+import path from "path";
 
 const ac = new DataPack("ayers_craft");
 const sb = ac.makeScoreboard("AC", {
@@ -75,4 +75,8 @@ const load = ac.mcFunction(function* load() {
 
 mcLoad(load);
 
-build(path.join(__dirname, ".."));
+if (module.parent) {
+  console.log("required module");
+} else {
+  build(path.join(__dirname, ".."));
+}
