@@ -11,8 +11,9 @@ import DataPack, {
   particle,
   Particle,
 } from "../ts-datapack/src";
+import { selector } from "../ts-datapack/src/datapack";
 
-const compass = new DataPack("compass_player_locator");
+const compass = new DataPack("compass_player_locator", "cpl");
 
 const sb = compass.makeScoreboard("cpl", {
   id: "dummy",
@@ -31,7 +32,7 @@ const assign_id = compass.mcFunction(function* assign_id() {
   yield scoreboard("players", "add", fakePlayer, sb.id, 1);
 });
 
-const nearby = compass.createSelector("@e", {
+const nearby = selector("@e", {
   distance: "0.1..3",
   sort: "nearest",
   limit: 1,
@@ -51,7 +52,7 @@ const follow_new_entity = compass.mcFunction(function* follow_new_entity() {
   yield execute().as(nearby).run(assign_id);
 });
 
-const entity = compass.createSelector("@e", {
+const entity = selector("@e", {
   scores: `{${sb.id}=1..}`,
 });
 const self = entity({
@@ -153,7 +154,7 @@ const load = compass.mcFunction(function* load() {
     .run(scoreboard("players", "set", fakePlayer, sb.id, 1));
 });
 
-const playerHolingTool = compass.createSelector("@a", {
+const playerHolingTool = selector("@a", {
   nbt: nbt({
     SelectedItem: {
       id: `minecraft:compass`,
@@ -162,7 +163,7 @@ const playerHolingTool = compass.createSelector("@a", {
 });
 
 const tick = compass.mcFunction(function* tick() {
-  const a = compass.createSelector("@a");
+  const a = selector("@a");
 
   yield scoreboard("players", "add", "@a", sb.holding, 0);
 
@@ -208,7 +209,7 @@ mcLoad(load);
 mcTick(tick);
 
 const find_target = compass.mcFunction(function* track_entity() {
-  const entity = compass.createSelector("@e", {
+  const entity = selector("@e", {
     scores: `{${sb.id}=1..}`,
   });
   const self = entity({
@@ -219,7 +220,7 @@ const find_target = compass.mcFunction(function* track_entity() {
   const show_target = compass.mcFunction(function* show_target() {
     // TODO: Figure out the particle function
 
-    const playerFollowing = compass.createSelector("@a", {
+    const playerFollowing = selector("@a", {
       scores: `{${sb.follow}=1..}`,
       nbt: nbt({ SelectedItem: { id: "minecraft:compass" } }),
     });

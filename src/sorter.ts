@@ -15,10 +15,11 @@ import DataPack, {
   particle,
 } from "../ts-datapack/src";
 import { Command } from "../ts-datapack/src/types";
+import { selector } from "../ts-datapack/src/datapack";
 
 const cooldownPlayer = "#ac_cooldown";
 const tickPlayer = "#ac_tick";
-const ac = new DataPack("ayers_sort");
+const ac = new DataPack("ayers_sort", "sort");
 const sb = ac.makeScoreboard("sort", {
   new_book: `trigger`,
   tick: "dummy",
@@ -198,7 +199,7 @@ const sort = ac.mcFunction(function* sort() {
       }
 
       groups[group.group_name] = ac.mcFunction(function* () {
-        const targetFrame = ac.createSelector("@e", {
+        const targetFrame = selector("@e", {
           type: "minecraft:item_frame",
           nbt: nbt({ Item: { id: group.item_frame } }),
           distance: "0..128",

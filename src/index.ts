@@ -12,8 +12,9 @@ import DataPack, {
 import "./sorter";
 import "./compass";
 import path from "path";
+import { selector } from "../ts-datapack/src/datapack";
 
-const ac = new DataPack("ayers_craft");
+const ac = new DataPack("ayers_craft", "AC");
 const sb = ac.makeScoreboard("AC", {
   invincible: "dummy",
 });
@@ -26,7 +27,7 @@ type GroupConfig = {
 };
 
 const creepers = ac.mcFunction(function* creepers() {
-  const creeper = ac.createSelector("@e", {
+  const creeper = selector("@e", {
     type: "minecraft:creeper",
     distance: "0..10",
   });
