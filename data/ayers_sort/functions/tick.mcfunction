@@ -26,5 +26,5 @@ execute if score #ac_tick sort.tick matches 100.. run scoreboard players set #ac
 
 scoreboard players enable @a sort.new_book
 
-execute as @p[scores={sort.new_book=1}] at @s run function ayers_sort:new_book
+execute as @p[scores={sort.new_book=1}] at @s run function ayers_sort:get_new_book
 

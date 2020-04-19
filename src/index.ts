@@ -14,9 +14,7 @@ import path from "path";
 import { selector } from "../ts-datapack/src/datapack";
 
 const ac = new DataPack("ayers_craft", "AC");
-const sb = ac.makeScoreboard("AC", {
-  invincible: "dummy",
-});
+const invincible = ac.objective("invincible", "dummy");
 
 type GroupConfig = {
   group_name: string;
@@ -43,7 +41,7 @@ const creepers = ac.mcFunction(function* creepers() {
 const invincibility = ac.mcFunction(function* invincibility() {
   yield effect(
     "give",
-    `@a[scores={${sb.invincible}=1}]`,
+    `@a[scores={${invincible}=1}]`,
     "minecraft:regeneration",
     60,
     255,
@@ -52,7 +50,7 @@ const invincibility = ac.mcFunction(function* invincibility() {
 
   yield effect(
     "give",
-    `@a[scores={${sb.invincible}=1}]`,
+    `@a[scores={${invincible}=1}]`,
     "minecraft:resistance",
     60,
     255,

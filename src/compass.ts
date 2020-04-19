@@ -13,21 +13,19 @@ import { selector } from "../ts-datapack/src/datapack";
 
 const compass = new DataPack("compass_player_locator", "cpl");
 
-const sb = compass.makeScoreboard("cpl", {
-  id: "dummy",
-  follow: "dummy",
-  holding: "dummy",
-  follow_next: "trigger",
-  follow_new: "trigger",
-  searching: "dummy",
-});
+const id = compass.objective("id", "dummy");
+const follow = compass.objective("follow", "dummy");
+const holding = compass.objective("holding", "dummy");
+const follow_next = compass.objective("follow_next", "trigger");
+const follow_new = compass.objective("follow_new", "trigger");
+const searching = compass.objective("searching", "dummy");
 
 const fakePlayer = "#compass_player_locator";
-const nextId = `${fakePlayer} ${sb.id}`;
+const nextId = `${fakePlayer} ${id}`;
 
 const assign_id = compass.mcFunction(function* assign_id() {
-  yield scoreboard("players", "operation", "@s", sb.id, "=", fakePlayer, sb.id);
-  yield scoreboard("players", "add", fakePlayer, sb.id, 1);
+  yield scoreboard("players", "operation", "@s", id, "=", fakePlayer, id);
+  yield scoreboard("players", "add", fakePlayer, id, 1);
 });
 
 const nearby = selector("@e", {
@@ -37,21 +35,13 @@ const nearby = selector("@e", {
 });
 const follow_new_entity = compass.mcFunction(function* follow_new_entity() {
   yield say(`Follow New ${nearby}`);
-  yield scoreboard("players", "set", "@s", sb.follow_new, 0);
-  yield scoreboard(
-    "players",
-    "operation",
-    "@s",
-    sb.follow,
-    "=",
-    fakePlayer,
-    sb.id
-  );
+  yield scoreboard("players", "set", "@s", follow_new, 0);
+  yield scoreboard("players", "operation", "@s", follow, "=", fakePlayer, id);
   yield execute().as(nearby).run(assign_id);
 });
 
 const entity = selector("@e", {
-  scores: `{${sb.id}=1..}`,
+  scores: `{${id}=1..}`,
 });
 const self = entity({
   limit: 1,
@@ -61,51 +51,49 @@ const self = entity({
 const show_following = compass.mcFunction(function* show_following() {
   yield execute()
     .at(entity)
-    .if(`score ${self} ${sb.id} = @s ${sb.follow}`)
+    .if(`score ${self} ${id} = @s ${follow}`)
     .run(title("@a", "title", ["", { text: "Following" }]));
 
   yield execute()
     .at(entity)
     // If its score mathes the subject's follow ID
-    .if(`score ${self} ${sb.id} = @s ${sb.follow}`)
+    .if(`score ${self} ${id} = @s ${follow}`)
     .run(title("@a", "subtitle", ["", { selector: self }]));
 });
 
 const change = compass.mcFunction(function* change() {
-  yield scoreboard("players", "set", "@s", sb.follow_next, 0);
+  yield scoreboard("players", "set", "@s", follow_next, 0);
   // Increment follow
-  yield scoreboard("players", "add", "@s", sb.follow, 1);
+  yield scoreboard("players", "add", "@s", follow, 1);
 
   // Loop around
   yield execute()
-    .if(`score @s ${sb.follow} > ${nextId}`)
-    .run(scoreboard("players", "set", "@s", sb.follow, 1));
+    .if(`score @s ${follow} > ${nextId}`)
+    .run(scoreboard("players", "set", "@s", follow, 1));
 
   // # Skip yourself
   yield execute()
-    .if(`score @s ${sb.follow} = @s ${sb.id}`)
-    .run(scoreboard("players", "add", "@s", sb.follow, 1));
+    .if(`score @s ${follow} = @s ${id}`)
+    .run(scoreboard("players", "add", "@s", follow, 1));
 
   yield execute()
     .at(entity)
-    .if(`score ${self} ${sb.id} = @s ${sb.follow}`)
-    .run(scoreboard("players", "set", "@s", sb.searching, 0));
+    .if(`score ${self} ${id} = @s ${follow}`)
+    .run(scoreboard("players", "set", "@s", searching, 0));
 
   yield execute()
     // If this looped all the way around
-    .if(`score @s ${sb.searching} = @s ${sb.follow}`)
+    .if(`score @s ${searching} = @s ${follow}`)
     // stop searching
-    .run(scoreboard("players", "set", "@s", sb.searching, 0));
+    .run(scoreboard("players", "set", "@s", searching, 0));
 
-  yield execute().if(`entity @s[scores={${sb.searching}=1..}]`).run(change);
+  yield execute().if(`entity @s[scores={${searching}=1..}]`).run(change);
 
-  yield execute()
-    .if(`entity @s[scores={${sb.searching}=0}]`)
-    .run(show_following);
+  yield execute().if(`entity @s[scores={${searching}=0}]`).run(show_following);
 });
 
 const show_status = compass.mcFunction(function* show_status() {
-  yield scoreboard("players", "set", "@s", sb.holding, 1);
+  yield scoreboard("players", "set", "@s", holding, 1);
   yield show_following;
 
   yield tellraw("@s", [
@@ -116,7 +104,7 @@ const show_status = compass.mcFunction(function* show_status() {
       color: "blue",
       clickEvent: {
         action: "run_command",
-        value: `/trigger ${sb.follow_next}`,
+        value: `/trigger ${follow_next}`,
       },
     },
   ]);
@@ -135,7 +123,7 @@ const show_status = compass.mcFunction(function* show_status() {
           color: "blue",
           clickEvent: {
             action: "run_command",
-            value: `/trigger ${sb.follow_new}`,
+            value: `/trigger ${follow_new}`,
           },
         },
         { selector: `${nearby}` },
@@ -144,12 +132,12 @@ const show_status = compass.mcFunction(function* show_status() {
 });
 
 const load = compass.mcFunction(function* load() {
-  yield scoreboard("players", "set", fakePlayer, sb.searching, 1);
-  yield scoreboard("players", "add", fakePlayer, sb.id, 0);
+  yield scoreboard("players", "set", fakePlayer, searching, 1);
+  yield scoreboard("players", "add", fakePlayer, id, 0);
 
   yield execute()
-    .if(`score ${nextId} < ${fakePlayer} ${sb.searching}`)
-    .run(scoreboard("players", "set", fakePlayer, sb.id, 1));
+    .if(`score ${nextId} < ${fakePlayer} ${searching}`)
+    .run(scoreboard("players", "set", fakePlayer, id, 1));
 });
 
 const playerHolingTool = selector("@a", {
@@ -163,49 +151,41 @@ const playerHolingTool = selector("@a", {
 const tick = compass.mcFunction(function* tick() {
   const a = selector("@a");
 
-  yield scoreboard("players", "add", "@a", sb.holding, 0);
+  yield scoreboard("players", "add", "@a", holding, 0);
 
   yield execute()
-    .as(playerHolingTool({ scores: `{${sb.holding}=0}` }))
+    .as(playerHolingTool({ scores: `{${holding}=0}` }))
     .at("@s")
     .run(show_status);
 
   yield execute()
-    .as(a({ scores: `{${sb.holding}=1}` }))
+    .as(a({ scores: `{${holding}=1}` }))
     .unless(`entity @s[nbt={SelectedItem:{id:"minecraft:compass"}}]`)
-    .run(scoreboard("players", "set", "@s", sb.holding, 0));
+    .run(scoreboard("players", "set", "@s", holding, 0));
 
-  yield scoreboard("players", "enable", "@a", sb.follow_new);
+  yield scoreboard("players", "enable", "@a", follow_new);
   yield execute()
-    .as(`@a[scores={${sb.follow_new}=1..}]`)
+    .as(`@a[scores={${follow_new}=1..}]`)
     .at("@s")
     .run(follow_new_entity);
 
-  yield scoreboard("players", "enable", "@a", sb.follow_next);
+  yield scoreboard("players", "enable", "@a", follow_next);
 
   yield execute()
-    .as(`@a[scores={${sb.follow_next}=1..}]`)
+    .as(`@a[scores={${follow_next}=1..}]`)
     .run(
-      scoreboard(
-        "players",
-        "operation",
-        "@s",
-        sb.searching,
-        "=",
-        "@s",
-        sb.follow
-      )
+      scoreboard("players", "operation", "@s", searching, "=", "@s", follow)
     );
 
-  yield execute().as(`@a[scores={${sb.follow_next}=1..}]`).at("@s").run(change);
-  yield scoreboard("players", "add", "@a", sb.id, 0);
+  yield execute().as(`@a[scores={${follow_next}=1..}]`).at("@s").run(change);
+  yield scoreboard("players", "add", "@a", id, 0);
 
-  yield execute().as(`@a[scores={${sb.id}=0}, limit = 1]`).run(assign_id);
+  yield execute().as(`@a[scores={${id}=0}, limit = 1]`).run(assign_id);
 });
 
 const find_target = compass.mcFunction(function* track_entity() {
   const entity = selector("@e", {
-    scores: `{${sb.id}=1..}`,
+    scores: `{${id}=1..}`,
   });
   const self = entity({
     limit: 1,
@@ -216,7 +196,7 @@ const find_target = compass.mcFunction(function* track_entity() {
     // TODO: Figure out the particle function
 
     const playerFollowing = selector("@a", {
-      scores: `{${sb.follow}=1..}`,
+      scores: `{${follow}=1..}`,
       nbt: nbt({ SelectedItem: { id: "minecraft:compass" } }),
     });
 
@@ -227,7 +207,7 @@ const find_target = compass.mcFunction(function* track_entity() {
       yield execute()
         .at(playerFollowing)
         // find the player that is following me (@s)
-        .if(`score ${self} ${sb.follow} = @s ${sb.id}`)
+        .if(`score ${self} ${follow} = @s ${id}`)
         // At the player...
         .at(self)
         .facing(`entity @s eyes`)
@@ -243,7 +223,7 @@ const find_target = compass.mcFunction(function* track_entity() {
   yield execute()
     .at(entity)
     // If its score mathes the subject's follow ID
-    .if(`score ${self} ${sb.id} = @s ${sb.follow}`)
+    .if(`score ${self} ${id} = @s ${follow}`)
     .as(self)
     .run(show_target);
 });
