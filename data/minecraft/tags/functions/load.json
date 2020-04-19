@@ -1,6 +1,6 @@
 {
   "values": [
-    "ts_pack:load",
+    "#ts-datapack:scoreboards",
     "compass_player_locator:load",
     "ayers_craft:load"
   ]
