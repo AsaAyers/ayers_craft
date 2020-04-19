@@ -2,7 +2,6 @@
 import config from "../mss_config.json";
 import DataPack, {
   TextNode,
-  mcTick,
   McFunction,
   nbt,
   command,
@@ -286,4 +285,10 @@ const tick = ac.mcFunction(function* tick() {
   yield execute().as(`@p[scores={${sb.new_book}=1}]`).at("@s").run(new_book);
 });
 
-mcTick(tick);
+ac.register({
+  tags: {
+    functions: {
+      "minecraft:tick": [tick],
+    },
+  },
+});

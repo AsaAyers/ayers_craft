@@ -1,6 +1,4 @@
 import DataPack, {
-  mcTick,
-  mcLoad,
   execute,
   nbt,
   scoreboard,
@@ -205,9 +203,6 @@ const tick = compass.mcFunction(function* tick() {
   yield execute().as(`@a[scores={${sb.id}=0}, limit = 1]`).run(assign_id);
 });
 
-mcLoad(load);
-mcTick(tick);
-
 const find_target = compass.mcFunction(function* track_entity() {
   const entity = selector("@e", {
     scores: `{${sb.id}=1..}`,
@@ -252,11 +247,19 @@ const find_target = compass.mcFunction(function* track_entity() {
     .as(self)
     .run(show_target);
 });
-mcTick(
-  compass.mcFunction(function* tick_track() {
-    yield execute()
-      .as(`@a[nbt={SelectedItem:{id:"minecraft:compass"}}]`)
-      .at(`@s`)
-      .run(find_target);
-  })
-);
+
+const tick_track = compass.mcFunction(function* tick_track() {
+  yield execute()
+    .as(`@a[nbt={SelectedItem:{id:"minecraft:compass"}}]`)
+    .at(`@s`)
+    .run(find_target);
+});
+
+compass.register({
+  tags: {
+    functions: {
+      "minecraft:load": [load],
+      "minecraft:tick": [tick, tick_track],
+    },
+  },
+});

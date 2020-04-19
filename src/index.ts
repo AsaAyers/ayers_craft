@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import DataPack, {
-  mcLoad,
   say,
   execute,
   schedule,
@@ -74,10 +73,16 @@ const load = ac.mcFunction(function* load() {
   yield schedule(creepers, "10t");
 });
 
-mcLoad(load);
+ac.register({
+  tags: {
+    functions: {
+      "minecraft:load": [load],
+    },
+  },
+});
 
 if (module.parent) {
   console.log("required module");
 } else {
-  build(path.join(__dirname, ".."));
+  build(ac, path.join(__dirname, ".."));
 }

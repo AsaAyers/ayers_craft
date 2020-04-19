@@ -1,13 +1,13 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as util from "util";
-import { buildPlan } from "../ts-datapack/src";
+import { processQueue } from "../ts-datapack/src";
 
 const readFile = util.promisify(fs.readFile);
 
 describe("Snapshot Tests", () => {
   require("./index");
-  const plan = buildPlan();
+  const plan = processQueue();
 
   const datapack = path.join(__dirname, "..");
 
