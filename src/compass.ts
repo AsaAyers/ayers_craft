@@ -8,6 +8,7 @@ import DataPack, {
   title,
   particle,
   Particle,
+  McFunction,
 } from "../ts-datapack/src";
 import { selector } from "../ts-datapack/src/datapack";
 
@@ -15,7 +16,6 @@ const compass = new DataPack("compass_player_locator", "cpl");
 
 const id = compass.objective("id", "dummy");
 const follow = compass.objective("follow", "dummy");
-const holding = compass.objective("holding", "dummy");
 const follow_next = compass.objective("follow_next", "trigger");
 const follow_new = compass.objective("follow_new", "trigger");
 const searching = compass.objective("searching", "dummy");
@@ -93,7 +93,6 @@ const change = compass.mcFunction(function* change() {
 });
 
 const show_status = compass.mcFunction(function* show_status() {
-  yield scoreboard("players", "set", "@s", holding, 1);
   yield show_following;
 
   yield tellraw("@s", [
@@ -140,29 +139,65 @@ const load = compass.mcFunction(function* load() {
     .run(scoreboard("players", "set", fakePlayer, id, 1));
 });
 
-const playerHolingTool = selector("@a", {
-  nbt: nbt({
-    SelectedItem: {
-      id: `minecraft:compass`,
+function hold(
+  dp: DataPack,
+  prefix: string,
+  item: string,
+  callback: McFunction
+): void {
+  const a = selector("@a");
+  const s = selector("@s");
+
+  const holdingParams = {
+    nbt: nbt({
+      SelectedItem: {
+        id: item,
+      },
+    }),
+  };
+
+  const holding = compass.objective(`${prefix}_holding`, "dummy");
+  const tick = dp.mcFunction(function* () {
+    yield scoreboard("players", "add", "@a", holding, 0);
+
+    yield execute()
+      .as(
+        a({
+          ...holdingParams,
+          scores: `{${holding}=0}`,
+        })
+      )
+      .at("@s")
+      .run(callback);
+
+    yield execute()
+      .as(
+        a({
+          ...holdingParams,
+          scores: `{${holding}=0}`,
+        })
+      )
+      .at("@s")
+      .run(scoreboard("players", "set", "@s", holding, 1));
+
+    yield execute()
+      .as(a({ scores: `{${holding}=1}` }))
+      .unless(`entity ${s(holdingParams)}`)
+      .run(scoreboard("players", "set", "@s", holding, 0));
+  }, `${prefix}/hold_tick`);
+
+  dp.register({
+    tags: {
+      functions: {
+        "minecraft:tick": [tick],
+      },
     },
-  }),
-});
+  });
+}
+
+hold(compass, "compass", "minecraft:compass", show_status);
 
 const tick = compass.mcFunction(function* tick() {
-  const a = selector("@a");
-
-  yield scoreboard("players", "add", "@a", holding, 0);
-
-  yield execute()
-    .as(playerHolingTool({ scores: `{${holding}=0}` }))
-    .at("@s")
-    .run(show_status);
-
-  yield execute()
-    .as(a({ scores: `{${holding}=1}` }))
-    .unless(`entity @s[nbt={SelectedItem:{id:"minecraft:compass"}}]`)
-    .run(scoreboard("players", "set", "@s", holding, 0));
-
   yield scoreboard("players", "enable", "@a", follow_new);
   yield execute()
     .as(`@a[scores={${follow_new}=1..}]`)
