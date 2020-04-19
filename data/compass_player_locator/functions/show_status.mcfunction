@@ -2,9 +2,9 @@
 
 function compass_player_locator:show_following
 
-tellraw @s ["",{"text":"Compass tracker: ","color":"gray"},{"text":"[change]","color":"blue","clickEvent":{"action":"run_command","value":"/trigger cpl.follow_next"}}]
+tellraw @s ["",{"text":"Compass tracker: ","color":"gray"},{"text":"[change]","color":"blue","clickEvent":{"action":"run_command","value":"/trigger cpl.menu_compass set 1"}}]
 
 execute if entity @e[distance=0.1..3,sort=nearest,limit=1] run say "@e[distance=0.1..3,sort=nearest,limit=1]"
 
-execute if entity @e[distance=0.1..3,sort=nearest,limit=1] run tellraw @s ["",{"text":"Compass tracker: ","color":"gray"},{"text":"[follow]","color":"blue","clickEvent":{"action":"run_command","value":"/trigger cpl.follow_new"}},{"selector":"@e[distance=0.1..3,sort=nearest,limit=1]"}]
+execute if entity @e[distance=0.1..3,sort=nearest,limit=1] run tellraw @s ["",{"text":"Compass tracker: ","color":"gray"},{"text":"[follow]","color":"blue","clickEvent":{"action":"run_command","value":"/trigger cpl.menu_compass set 2"}},{"selector":"@e[distance=0.1..3,sort=nearest,limit=1]"}]
 

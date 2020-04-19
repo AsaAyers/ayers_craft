@@ -8,16 +8,14 @@ import DataPack, {
   title,
   particle,
   Particle,
-  McFunction,
 } from "../ts-datapack/src";
 import { selector } from "../ts-datapack/src/datapack";
+import { makeMenu, hold } from "./utils";
 
 const compass = new DataPack("compass_player_locator", "cpl");
 
 const id = compass.objective("id", "dummy");
 const follow = compass.objective("follow", "dummy");
-const follow_next = compass.objective("follow_next", "trigger");
-const follow_new = compass.objective("follow_new", "trigger");
 const searching = compass.objective("searching", "dummy");
 
 const fakePlayer = "#compass_player_locator";
@@ -35,7 +33,6 @@ const nearby = selector("@e", {
 });
 const follow_new_entity = compass.mcFunction(function* follow_new_entity() {
   yield say(`Follow New ${nearby}`);
-  yield scoreboard("players", "set", "@s", follow_new, 0);
   yield scoreboard("players", "operation", "@s", follow, "=", fakePlayer, id);
   yield execute().as(nearby).run(assign_id);
 });
@@ -62,7 +59,6 @@ const show_following = compass.mcFunction(function* show_following() {
 });
 
 const change = compass.mcFunction(function* change() {
-  yield scoreboard("players", "set", "@s", follow_next, 0);
   // Increment follow
   yield scoreboard("players", "add", "@s", follow, 1);
 
@@ -92,6 +88,29 @@ const change = compass.mcFunction(function* change() {
   yield execute().if(`entity @s[scores={${searching}=0}]`).run(show_following);
 });
 
+const load = compass.mcFunction(function* load() {
+  yield scoreboard("players", "set", fakePlayer, searching, 1);
+  yield scoreboard("players", "add", fakePlayer, id, 0);
+
+  yield execute()
+    .if(`score ${nextId} < ${fakePlayer} ${searching}`)
+    .run(scoreboard("players", "set", fakePlayer, id, 1));
+});
+
+const backup_follow = compass.mcFunction(function* backup_follow() {
+  yield execute()
+    .as(`@s`)
+    .run(
+      scoreboard("players", "operation", "@s", searching, "=", "@s", follow)
+    );
+});
+const changeTag = compass.makeTag("functions", "change");
+changeTag(backup_follow, change);
+const [follow_next, follow_new] = makeMenu(compass, "compass", [
+  changeTag,
+  follow_new_entity,
+]);
+
 const show_status = compass.mcFunction(function* show_status() {
   yield show_following;
 
@@ -103,7 +122,7 @@ const show_status = compass.mcFunction(function* show_status() {
       color: "blue",
       clickEvent: {
         action: "run_command",
-        value: `/trigger ${follow_next}`,
+        value: `/${follow_next}`,
       },
     },
   ]);
@@ -122,7 +141,7 @@ const show_status = compass.mcFunction(function* show_status() {
           color: "blue",
           clickEvent: {
             action: "run_command",
-            value: `/trigger ${follow_new}`,
+            value: `/${follow_new}`,
           },
         },
         { selector: `${nearby}` },
@@ -130,89 +149,8 @@ const show_status = compass.mcFunction(function* show_status() {
     );
 });
 
-const load = compass.mcFunction(function* load() {
-  yield scoreboard("players", "set", fakePlayer, searching, 1);
-  yield scoreboard("players", "add", fakePlayer, id, 0);
-
-  yield execute()
-    .if(`score ${nextId} < ${fakePlayer} ${searching}`)
-    .run(scoreboard("players", "set", fakePlayer, id, 1));
-});
-
-function hold(
-  dp: DataPack,
-  prefix: string,
-  item: string,
-  callback: McFunction
-): void {
-  const a = selector("@a");
-  const s = selector("@s");
-
-  const holdingParams = {
-    nbt: nbt({
-      SelectedItem: {
-        id: item,
-      },
-    }),
-  };
-
-  const holding = compass.objective(`${prefix}_holding`, "dummy");
-  const tick = dp.mcFunction(function* () {
-    yield scoreboard("players", "add", "@a", holding, 0);
-
-    yield execute()
-      .as(
-        a({
-          ...holdingParams,
-          scores: `{${holding}=0}`,
-        })
-      )
-      .at("@s")
-      .run(callback);
-
-    yield execute()
-      .as(
-        a({
-          ...holdingParams,
-          scores: `{${holding}=0}`,
-        })
-      )
-      .at("@s")
-      .run(scoreboard("players", "set", "@s", holding, 1));
-
-    yield execute()
-      .as(a({ scores: `{${holding}=1}` }))
-      .unless(`entity ${s(holdingParams)}`)
-      .run(scoreboard("players", "set", "@s", holding, 0));
-  }, `${prefix}/hold_tick`);
-
-  dp.register({
-    tags: {
-      functions: {
-        "minecraft:tick": [tick],
-      },
-    },
-  });
-}
-
 hold(compass, "compass", "minecraft:compass", show_status);
-
 const tick = compass.mcFunction(function* tick() {
-  yield scoreboard("players", "enable", "@a", follow_new);
-  yield execute()
-    .as(`@a[scores={${follow_new}=1..}]`)
-    .at("@s")
-    .run(follow_new_entity);
-
-  yield scoreboard("players", "enable", "@a", follow_next);
-
-  yield execute()
-    .as(`@a[scores={${follow_next}=1..}]`)
-    .run(
-      scoreboard("players", "operation", "@s", searching, "=", "@s", follow)
-    );
-
-  yield execute().as(`@a[scores={${follow_next}=1..}]`).at("@s").run(change);
   yield scoreboard("players", "add", "@a", id, 0);
 
   yield execute().as(`@a[scores={${id}=0}, limit = 1]`).run(assign_id);

@@ -1,6 +1,7 @@
 {
   "values": [
     "ayers_sort:tick",
+    "compass_player_locator:menu/compass_tick",
     "compass_player_locator:compass/hold_tick",
     "compass_player_locator:tick",
     "compass_player_locator:tick_track"

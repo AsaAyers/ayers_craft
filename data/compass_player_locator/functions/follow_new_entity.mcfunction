@@ -2,8 +2,6 @@
 
 say "Follow New @e[distance=0.1..3,sort=nearest,limit=1]"
 
-scoreboard players set @s cpl.follow_new 0
-
 scoreboard players operation @s cpl.follow = #compass_player_locator cpl.id
 
 execute as @e[distance=0.1..3,sort=nearest,limit=1] run function compass_player_locator:assign_id

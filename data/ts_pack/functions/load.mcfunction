@@ -12,11 +12,9 @@ scoreboard objectives add cpl.id dummy
 
 scoreboard objectives add cpl.follow dummy
 
-scoreboard objectives add cpl.follow_next trigger
-
-scoreboard objectives add cpl.follow_new trigger
-
 scoreboard objectives add cpl.searching dummy
+
+scoreboard objectives add cpl.menu_compass trigger
 
 scoreboard objectives add cpl.compass_holding dummy
 
