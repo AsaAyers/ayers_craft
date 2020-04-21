@@ -23,7 +23,7 @@ export function hold(
       },
     }),
   };
-  const holding = dp.objective(`${prefix}_holding`, "dummy");
+  const holding = dp.objective(`${prefix}_hold`, "dummy");
   const tick = dp.mcFunction(function* () {
     yield scoreboard("players", "add", "@a", holding, 0);
     yield execute()
